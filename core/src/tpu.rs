@@ -13,6 +13,9 @@ use {
         find_packet_sender_stake_stage::FindPacketSenderStakeStage,
         sigverify::TransactionSigVerifier,
         sigverify_stage::SigVerifyStage,
+        staked_nodes_overrides_updater_service::{
+            StakedNodesOverrides, StakedNodesOverridesUpdaterService,
+        },
         staked_nodes_updater_service::StakedNodesUpdaterService,
     },
     crossbeam_channel::{unbounded, Receiver},
@@ -67,6 +70,7 @@ pub struct Tpu {
     find_packet_sender_stake_stage: FindPacketSenderStakeStage,
     vote_find_packet_sender_stake_stage: FindPacketSenderStakeStage,
     staked_nodes_updater_service: StakedNodesUpdaterService,
+    staked_nodes_overrides_updater_service: StakedNodesOverridesUpdaterService,
 }
 
 impl Tpu {
@@ -98,6 +102,7 @@ impl Tpu {
         log_messages_bytes_limit: Option<usize>,
         enable_quic_servers: bool,
         staked_nodes: &Arc<RwLock<StakedNodes>>,
+        staked_nodes_overrides_path: Option<String>,
     ) -> Self {
         let TpuSockets {
             transactions: transactions_sockets,
@@ -125,11 +130,19 @@ impl Tpu {
             Some(bank_forks.read().unwrap().get_vote_only_mode_signal()),
         );
 
+        let staked_nodes_overrides = Arc::new(RwLock::new(StakedNodesOverrides::default()));
+        let staked_nodes_overrides_updater_service = StakedNodesOverridesUpdaterService::new(
+            exit.clone(),
+            staked_nodes_overrides.clone(),
+            staked_nodes_overrides_path.clone(),
+        );
+
         let staked_nodes_updater_service = StakedNodesUpdaterService::new(
             exit.clone(),
             cluster_info.clone(),
             bank_forks.clone(),
             staked_nodes.clone(),
+            staked_nodes_overrides.clone(),
         );
 
         let (find_packet_sender_stake_sender, find_packet_sender_stake_receiver) = unbounded();
@@ -258,6 +271,7 @@ impl Tpu {
             find_packet_sender_stake_stage,
             vote_find_packet_sender_stake_stage,
             staked_nodes_updater_service,
+            staked_nodes_overrides_updater_service,
         }
     }
 
@@ -271,6 +285,7 @@ impl Tpu {
             self.find_packet_sender_stake_stage.join(),
             self.vote_find_packet_sender_stake_stage.join(),
             self.staked_nodes_updater_service.join(),
+            self.staked_nodes_overrides_updater_service.join(),
         ];
         if let Some(tpu_quic_t) = self.tpu_quic_t {
             tpu_quic_t.join()?;

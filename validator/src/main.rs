@@ -1230,6 +1230,13 @@ pub fn main() {
                 .help("Controls the TPU connection pool size per remote addresss"),
         )
         .arg(
+            Arg::with_name("staked_nodes_overrides")
+                .long("staked-nodes-overrides")
+                .value_name("FILE")
+                .takes_value(true)
+                .help("Provide file with custom overrides for stakes of specific IPs."),
+        )
+        .arg(
             Arg::with_name("rocksdb_max_compaction_jitter")
                 .long("rocksdb-max-compaction-jitter-slots")
                 .value_name("ROCKSDB_MAX_COMPACTION_JITTER_SLOTS")
@@ -2313,6 +2320,10 @@ pub fn main() {
     let enable_quic_servers = !matches.is_present("disable_quic_servers");
     let tpu_connection_pool_size = value_t_or_exit!(matches, "tpu_connection_pool_size", usize);
 
+    let staked_nodes_overrides_path = matches
+        .value_of("staked_nodes_overrides")
+        .map(str::to_string);
+
     let shrink_ratio = value_t_or_exit!(matches, "accounts_shrink_ratio", f64);
     if !(0.0..=1.0).contains(&shrink_ratio) {
         eprintln!(
@@ -2651,6 +2662,7 @@ pub fn main() {
         accounts_db_config,
         accounts_db_skip_shrink: matches.is_present("accounts_db_skip_shrink"),
         tpu_coalesce_ms,
+        staked_nodes_overrides_path,
         no_wait_for_vote_to_start_leader: matches.is_present("no_wait_for_vote_to_start_leader"),
         accounts_shrink_ratio,
         runtime_config: RuntimeConfig {

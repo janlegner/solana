@@ -170,6 +170,7 @@ pub struct ValidatorConfig {
     pub accounts_db_test_hash_calculation: bool,
     pub accounts_db_skip_shrink: bool,
     pub tpu_coalesce_ms: u64,
+    pub staked_nodes_overrides_path: Option<String>,
     pub validator_exit: Arc<RwLock<Exit>>,
     pub no_wait_for_vote_to_start_leader: bool,
     pub accounts_shrink_ratio: AccountShrinkThreshold,
@@ -231,6 +232,7 @@ impl Default for ValidatorConfig {
             accounts_db_test_hash_calculation: false,
             accounts_db_skip_shrink: false,
             tpu_coalesce_ms: DEFAULT_TPU_COALESCE_MS,
+            staked_nodes_overrides_path: None,
             validator_exit: Arc::new(RwLock::new(Exit::default())),
             no_wait_for_vote_to_start_leader: true,
             accounts_shrink_ratio: AccountShrinkThreshold::default(),
@@ -1032,6 +1034,7 @@ impl Validator {
             config.runtime_config.log_messages_bytes_limit,
             config.enable_quic_servers,
             &staked_nodes,
+            config.staked_nodes_overrides_path.clone(),
         );
 
         datapoint_info!(
