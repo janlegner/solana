@@ -96,14 +96,11 @@ impl StakedNodesOverridesUpdaterService {
         auto_reload: &mut bool,
         last_reload_attempt: &mut Option<Instant>,
     ) -> bool {
-        match last_reload_attempt {
-            Some(last_reload_attempt) => {
-                if last_reload_attempt.elapsed() < DEFAULT_STAKE_OVERRIDES_PERIOD {
-                    return false;
-                }
+        if let Some(last_reload_attempt) = last_reload_attempt {
+            if last_reload_attempt.elapsed() < DEFAULT_STAKE_OVERRIDES_PERIOD {
+                return false;
             }
-            _ => (),
-        };
+        }
 
         *last_reload_attempt = Some(Instant::now());
 

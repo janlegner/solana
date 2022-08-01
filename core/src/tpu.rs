@@ -134,7 +134,7 @@ impl Tpu {
         let staked_nodes_overrides_updater_service = StakedNodesOverridesUpdaterService::new(
             exit.clone(),
             staked_nodes_overrides.clone(),
-            staked_nodes_overrides_path.clone(),
+            staked_nodes_overrides_path,
         );
 
         let staked_nodes_updater_service = StakedNodesUpdaterService::new(
@@ -142,7 +142,7 @@ impl Tpu {
             cluster_info.clone(),
             bank_forks.clone(),
             staked_nodes.clone(),
-            staked_nodes_overrides.clone(),
+            staked_nodes_overrides,
         );
 
         let (find_packet_sender_stake_sender, find_packet_sender_stake_receiver) = unbounded();
